@@ -24,6 +24,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { LANGUAGES, CATEGORIES } from "@/types/snippet";
 import { X } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "./ui/sheet";
 
 /**
  * TODO: Implement SnippetForm Component
@@ -153,23 +160,19 @@ export default function SnippetForm({
       isFavorite,
     };
 
-    // Call create or update based on mode
     if (isEditMode && snippetId) {
       updateSnippet(snippetId, snippetData);
       onSnippetSaved?.(snippetId);
     } else {
-      // For create, generate the ID (same as in hook)
       const newId = Date.now().toString();
       createSnippet(snippetData);
       onSnippetSaved?.(newId);
     }
 
-    // Close dialog and reset
     onClose();
     resetForm();
   };
 
-  // Handle dialog close
   const handleClose = () => {
     onClose();
     if (!isEditMode) {
@@ -178,18 +181,18 @@ export default function SnippetForm({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:text-white bg-neutral-900">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent className="overflow-y-auto dark:text-white dark:bg-neutral-900 bg-white min-w-3xl">
+        <SheetHeader>
+          <SheetTitle>
             {isEditMode ? "Edit Snippet" : "Create New Snippet"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {isEditMode
               ? "Update your code snippet"
               : "Add a new snippet to your collection"}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
@@ -215,14 +218,14 @@ export default function SnippetForm({
           </div>
 
           {/* Language and Category */}
-          <div className="grid grid-cols-2 gap-4 text-white">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Language *</label>
               <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:text-white dark:bg-neutral-800 bg-white">
                   {LANGUAGES.map((lang) => (
                     <SelectItem key={lang} value={lang}>
                       {lang}
@@ -238,7 +241,7 @@ export default function SnippetForm({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:text-white dark:bg-neutral-800 bg-white">
                   {CATEGORIES.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
@@ -284,7 +287,7 @@ export default function SnippetForm({
           {/* Code */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Code *</label>
-            <div className="border rounded-md overflow-hidden h-72">
+            <div className="border border-neutral-700 rounded-md overflow-hidden h-72">
               <Editor
                 height="100%"
                 language={language}
@@ -329,7 +332,7 @@ export default function SnippetForm({
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

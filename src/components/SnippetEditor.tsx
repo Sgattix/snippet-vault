@@ -44,12 +44,20 @@ export default function SnippetEditor({
 
   if (!snippet) {
     return (
-      <Card className="h-[calc(100vh-280px)]">
+      <Card className="h-[calc(100vh-280px)] border-dashed animate-in fade-in duration-500">
         <CardContent className="flex items-center justify-center h-full">
           <div className="text-center text-muted-foreground">
-            <Code2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">Select a snippet to view</p>
-            <p className="text-sm mt-2">or create a new one</p>
+            <Code2 className="w-16 h-16 mx-auto mb-4 opacity-30 animate-pulse" />
+            <p className="text-lg font-medium mb-2">Select a snippet to view</p>
+            <p className="text-sm mt-2">
+              or{" "}
+              <span
+                className="underline cursor-pointer hover:text-primary transition-colors"
+                onClick={onEdit}
+              >
+                create a new one
+              </span>
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -95,29 +103,34 @@ export default function SnippetEditor({
   };
 
   return (
-    <Card className="h-[calc(100vh-280px)] flex flex-col">
+    <Card className="h-[calc(100vh-280px)] flex flex-col animate-in fade-in slide-in-from-right-4 duration-300 border-2 border-primary/20">
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <CardTitle>{snippet.title}</CardTitle>
+              <CardTitle className="truncate">{snippet.title}</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 hover:scale-110 transition-transform"
                 onClick={handleToggleFavorite}
               >
                 <Star
                   className={cn(
-                    "w-4 h-4",
-                    snippet.isFavorite && "fill-yellow-400 text-yellow-400"
+                    "w-4 h-4 transition-all",
+                    snippet.isFavorite &&
+                      "fill-yellow-400 text-yellow-400 scale-110"
                   )}
                 />
               </Button>
             </div>
-            <CardDescription>{snippet.description}</CardDescription>
-            <div className="flex gap-2 mt-3">
-              <Badge>{snippet.language}</Badge>
+            <CardDescription className="line-clamp-2">
+              {snippet.description}
+            </CardDescription>
+            <div className="flex gap-2 mt-3 flex-wrap">
+              <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500">
+                {snippet.language}
+              </Badge>
               <Badge variant="outline">{snippet.category}</Badge>
               {snippet.tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
@@ -126,8 +139,14 @@ export default function SnippetEditor({
               ))}
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleCopy}>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleCopy}
+              className="hover:bg-green-50 dark:hover:bg-green-950 hover:text-green-600 transition-colors"
+              title="Copy code"
+            >
               <Copy className="w-4 h-4" />
             </Button>
             {!isEditingInPlace && (
@@ -137,10 +156,17 @@ export default function SnippetEditor({
                   size="icon"
                   onClick={handleStartEdit}
                   title="Edit code directly"
+                  className="hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600 transition-colors"
                 >
                   <EditIcon className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={onEdit}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onEdit}
+                  title="Edit all details"
+                  className="hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:text-indigo-600 transition-colors"
+                >
                   <BoltIcon className="w-4 h-4" />
                 </Button>
               </>
@@ -150,7 +176,7 @@ export default function SnippetEditor({
                 <Button
                   size="icon"
                   onClick={handleSaveEdit}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 hover:scale-110 transition-transform"
                   title="Save changes"
                 >
                   <Check className="w-4 h-4" />
@@ -160,20 +186,27 @@ export default function SnippetEditor({
                   size="icon"
                   onClick={handleCancelEdit}
                   title="Cancel edit"
+                  className="hover:scale-110 transition-transform"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </>
             )}
             {!isEditingInPlace && (
-              <Button variant="destructive" size="icon" onClick={handleDelete}>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={handleDelete}
+                className="hover:scale-110 transition-transform"
+                title="Delete snippet"
+              >
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 p-0">
+      <CardContent className="flex-1 p-0 overflow-hidden">
         <Editor
           height="100%"
           language={snippet.language}
@@ -191,6 +224,7 @@ export default function SnippetEditor({
             lineNumbers: "on",
             scrollBeyondLastLine: false,
             formatOnPaste: isEditingInPlace,
+            automaticLayout: true,
           }}
         />
       </CardContent>

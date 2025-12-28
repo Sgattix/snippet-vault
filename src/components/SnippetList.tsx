@@ -9,122 +9,170 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Code2 } from "lucide-react";
+import { Star, Code2, Grid3x3, List } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-/**
- * TODO: Implement SnippetList Component
- *
- * This component displays the list of all snippets with filtering.
- *
- * Requirements:
- *
- * 1. USE THE HOOK
- *    - Import and use useSnippets() hook
- *    - Access snippets array and isLoading state
- *
- * 2. FILTERING
- *    - Filter snippets based on searchQuery prop
- *    - Search in: title, description, tags, language
- *    - Case-insensitive search
- *
- * 3. RENDERING
- *    - Map through filtered snippets
- *    - Display each snippet in a Card
- *    - Show: title, description, language badge, favorite icon
- *    - Highlight selected snippet (use selectedId prop)
- *    - Handle empty state (no snippets or no results)
- *
- * 4. INTERACTION
- *    - onClick: call onSelect(snippet.id)
- *    - Visual feedback for selected item
- *
- * 5. LOADING STATE
- *    - Show loading message while isLoading is true
- *
- * Tips:
- * - Use .filter() for search logic
- * - Use .toLowerCase() for case-insensitive comparison
- * - Consider checking multiple fields (title OR description OR tags)
- * - Sort by updatedAt (newest first) for better UX
- */
+import SnippetSort from "./SnippetSort";
+import { SnippetListSkeleton } from "./SkeletonLoader";
+import { Button } from "@/components/ui/button";
 
 interface SnippetListProps {
-  searchQuery: string;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  viewMode: "list" | "grid";
+  onViewModeChange: (mode: "list" | "grid") => void;
 }
 
 export default function SnippetList({
-  searchQuery,
   selectedId,
   onSelect,
+  viewMode,
+  onViewModeChange,
 }: SnippetListProps) {
-  const { snippets, isLoading } = useSnippetsContext();
+  const { isLoading, filteredSnippets, searchQuery } = useSnippetsContext();
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-muted-foreground text-center">
-            Loading snippets...
-          </p>
-        </CardContent>
-      </Card>
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <SnippetSort />
+          <div className="flex gap-1">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewModeChange("list")}
+              title="List view"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewModeChange("grid")}
+              title="Grid view"
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <SnippetListSkeleton />
+      </div>
     );
   }
 
-  if (snippets.length === 0) {
+  if (filteredSnippets?.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 w-full h-[calc(100vh-280px)] flex items-center justify-center">
-          <div className="text-center text-muted-foreground">
-            <Code2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No snippets found</p>
-            {searchQuery && (
-              <p className="text-sm mt-1">Try a different search term</p>
-            )}
+      <>
+        <div className="mb-3 flex items-center justify-between">
+          <SnippetSort />
+          <div className="flex gap-1">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewModeChange("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onViewModeChange("grid")}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <Card className="mt-3 border-dashed">
+          <CardContent className="p-12 w-full h-[calc(100vh-335px)] flex items-center justify-center">
+            <div className="text-center text-muted-foreground animate-in fade-in duration-500">
+              <Code2 className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-medium mb-2">No snippets found</p>
+              {searchQuery && (
+                <p className="text-sm">Try adjusting your search or filters</p>
+              )}
+              {!searchQuery && (
+                <p className="text-sm">
+                  Create your first snippet to get started
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </>
     );
   }
 
   return (
-    <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
-      {snippets.map((snippet) => (
-        <Card
-          key={snippet.id}
-          className={cn(
-            "cursor-pointer transition-all hover:shadow-md",
-            selectedId === snippet.id && "ring-2 ring-primary"
-          )}
-          onClick={() => onSelect(snippet.id)}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <CardTitle className="text-base">{snippet.title}</CardTitle>
-              {snippet.isFavorite && (
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              )}
-            </div>
-            <CardDescription className="line-clamp-2">
-              {snippet.description}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex gap-2 flex-wrap">
-              <Badge variant="secondary">{snippet.language}</Badge>
-              <Badge variant="outline">{snippet.category}</Badge>
-              {snippet.tags.slice(0, 2).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <SnippetSort />
+        <div className="flex gap-1">
+          <Button
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => onViewModeChange("list")}
+            title="List view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => onViewModeChange("grid")}
+            title="Grid view"
+          >
+            <Grid3x3 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div
+        className={cn(
+          "max-h-[calc(100vh-280px)] overflow-y-auto pr-2",
+          viewMode === "grid" ? "grid grid-cols-1 gap-3" : "space-y-3"
+        )}
+      >
+        {filteredSnippets?.map((snippet) => (
+          <Card
+            key={snippet.id}
+            className={cn(
+              "cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-2",
+              selectedId === snippet.id &&
+                "ring-2 ring-primary shadow-lg shadow-primary/20"
+            )}
+            onClick={() => onSelect(snippet.id)}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-2">
+                <CardTitle className="text-base line-clamp-1">
+                  {snippet.title}
+                </CardTitle>
+                {snippet.isFavorite && (
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+                )}
+              </div>
+              <CardDescription className="line-clamp-2">
+                {snippet.description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex gap-2 flex-wrap">
+                <Badge variant="secondary">{snippet.language}</Badge>
+                <Badge variant="outline">{snippet.category}</Badge>
+                {snippet.tags.slice(0, 2).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
